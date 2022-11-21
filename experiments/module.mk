@@ -47,7 +47,7 @@ $(MOSALLOC_TOOL): $(MOSALLOC_MAKEFILE)
 	make -j && ctest -VV
 
 $(MOSALLOC_MAKEFILE):
-	git submodule update --init --progress
+	git submodule update --init
 
 experiments-prerequisites: numactl
 
