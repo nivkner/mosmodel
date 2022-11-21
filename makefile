@@ -25,7 +25,6 @@ SCRIPTS_ROOT_DIR := $(ROOT_DIR)/scripts
 # uses variables defined in module A, than module A should come before module B
 SUBMODULES := experiments analysis
 
-include benchmark.mk
 include $(ROOT_DIR)/common.mk
 
 # a top-level "clean" target, which calls all/clean
