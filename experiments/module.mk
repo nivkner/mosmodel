@@ -37,7 +37,7 @@ endef
 
 #### recipes and rules for prerequisites
 
-.PHONY: experiments-prerequisites numactl test-run-mosalloc-tool
+.PHONY: experiments-prerequisites perf numactl mosalloc test-run-mosalloc-tool
 
 mosalloc: $(MOSALLOC_TOOL)
 $(MOSALLOC_TOOL): $(MOSALLOC_MAKEFILE)
@@ -49,7 +49,7 @@ $(MOSALLOC_TOOL): $(MOSALLOC_MAKEFILE)
 $(MOSALLOC_MAKEFILE):
 	git submodule update --init
 
-experiments-prerequisites: numactl
+experiments-prerequisites: perf numactl mosalloc
 
 PERF_PACKAGES := linux-tools
 KERNEL_VERSION := $(shell uname -r)
