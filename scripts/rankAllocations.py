@@ -50,7 +50,13 @@ def read_allocations(allocs: Path) -> pd.DataFrame:
 
         return pd.DataFrame({"start": start_list, "end": end_list, "context": ctx_list})
 
+def rank_allocations(allocs: Path, pebs: Path) -> pd.DataFrame:
+    pebs_df = pd.read_csv(pebs)
+    brk_pebs_df = pebs_df.filter(pd.col("PAGE_TYPE") == "brk")
+
+    allocs_df = read_allocations(allocs)
+
 if __name__ == "__main__":
     args = getCommandLineArguments()
 
-    print(read_allocations(args.allocation_data))
+    rank_allocations(args.allocation_data, args.pebs_data)
