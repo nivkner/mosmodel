@@ -12,6 +12,8 @@ assuming they do not overlap""")
             help='the path to the log file containing a list of allocations and their stack-trace')
     parser.add_argument('-p', '--pebs_data', type=Path, required=True,
             help='the CSV generated from pebs using mosmodel, for the number of TLB misses per 2MB region')
+    parser.add_argument('-b', '--base_data', type=Path, required=True,
+            help='the path to the CSV containing the base virtual addresses used the memory allocations')
     parser.add_argument('-o', '--output_file', type=Path, required=True, help='the path to the file where the output will be written')
     args = parser.parse_args()
     return args
@@ -50,13 +52,22 @@ def read_allocations(allocs: Path) -> pd.DataFrame:
 
         return pd.DataFrame({"start": start_list, "end": end_list, "context": ctx_list})
 
-def rank_allocations(allocs: Path, pebs: Path) -> pd.DataFrame:
+def rank_allocations(allocs: Path, pebs: Path, base: Path) -> pd.DataFrame:
     pebs_df = pd.read_csv(pebs)
+    # use only pebs on allocations made with brk
     brk_pebs_df = pebs_df.filter(pd.col("PAGE_TYPE") == "brk")
+
+    base_df = pd.read_csv(base)
+
+    # get the start of the brk memory pool of the last entry (which is the application) parse and find its corresponding huge page number
+    pool_base = base_df[-1].select(pd.col("brk-start").apply(lambda x: int(x, base=16) // (1 << 21)))
+
+    # add the base page number to the entries, so that the pages start from address 0
+    pebs_normalized_df = brk_pebs_df.with_columns(pd.col("PAGE_NUMBER") + pool_base)
 
     allocs_df = read_allocations(allocs)
 
 if __name__ == "__main__":
     args = getCommandLineArguments()
 
-    rank_allocations(args.allocation_data, args.pebs_data)
+    rank_allocations(args.allocation_data, args.pebs_data, args.base_data)
