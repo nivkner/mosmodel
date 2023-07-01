@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-import polars as pd
+import polars as pl
 import argparse
 from pathlib import Path
 
@@ -20,7 +20,7 @@ assuming they do not overlap""")
 
 # read the list of allocations and create a dataframe, with an entry per allocation
 # containing the start of the allocation, its end, and the context (stack-trace) of the malloc call
-def read_allocations(allocs: Path) -> pd.DataFrame:
+def read_allocations(allocs: Path) -> pl.DataFrame:
     with allocs.open() as a:
         # read each allocation in stages
         # as each line can be either the start, the end or part of the trace
@@ -50,20 +50,20 @@ def read_allocations(allocs: Path) -> pd.DataFrame:
                 # remove the virtual memory address from the backtrace
                 ctx_list[-1] += line[0:line.rindex('[')]
 
-        return pd.DataFrame({"start": start_list, "end": end_list, "context": ctx_list})
+        return pl.DataFrame({"start": start_list, "end": end_list, "context": ctx_list})
 
-def rank_allocations(allocs: Path, pebs: Path, base: Path) -> pd.DataFrame:
-    pebs_df = pd.read_csv(pebs)
+def rank_allocations(allocs: Path, pebs: Path, base: Path) -> pl.DataFrame:
+    pebs_df = pl.read_csv(pebs)
     # use only pebs on allocations made with brk
-    brk_pebs_df = pebs_df.filter(pd.col("PAGE_TYPE") == "brk")
+    brk_pebs_df = pebs_df.filter(pl.col("PAGE_TYPE") == "brk")
 
-    base_df = pd.read_csv(base)
+    base_df = pl.read_csv(base)
 
     # get the start of the brk memory pool of the last entry (which is the application) parse and find its corresponding huge page number
-    pool_base = base_df[-1].select(pd.col("brk-start").apply(lambda x: int(x, base=16) // (1 << 21)))
+    pool_base = base_df[-1].select(pl.col("brk-start").apply(lambda x: int(x, base=16) // (1 << 21)))
 
     # add the base page number to the entries, so that the pages start from address 0
-    pebs_normalized_df = brk_pebs_df.with_columns(pd.col("PAGE_NUMBER") + pool_base)
+    pebs_normalized_df = brk_pebs_df.with_columns(pl.col("PAGE_NUMBER") + pool_base)
 
     allocs_df = read_allocations(allocs)
 
