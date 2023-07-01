@@ -6,7 +6,7 @@ import time
 import subprocess
 import shutil
 import shlex
-from os.path import join, getsize, islink
+from os.path import join, getsize, islink, exists
 
 class BenchmarkRun:
     def __init__(self, benchmark_dir, output_dir):
@@ -32,7 +32,10 @@ class BenchmarkRun:
         os.chdir(self._output_dir)
         # the pre_run script will read input files to force them to reside
         # in the page-cache before run() is invoked.
-        subprocess.check_call('./pre_run.sh', stdout=self._log_file, stderr=self._log_file)
+        if exists('./pre_run.sh'):
+            subprocess.check_call('./pre_run.sh', stdout=self._log_file, stderr=self._log_file)
+        else:
+            subprocess.check_call('./prerun.sh', stdout=self._log_file, stderr=self._log_file)
 
     def run(self, num_threads, submit_command):
         print('running the benchmark ' + self._benchmark_dir + '...')
@@ -55,7 +58,10 @@ class BenchmarkRun:
     def post_run(self):
         print('validating the run outputs...')
         os.chdir(self._output_dir)
-        subprocess.check_call('./post_run.sh', stdout=self._log_file, stderr=self._log_file)
+        if exists('./post_run.sh'):
+            subprocess.check_call('./post_run.sh', stdout=self._log_file, stderr=self._log_file)
+        else:
+            subprocess.check_call('./postrun.sh', stdout=self._log_file, stderr=self._log_file)
 
     def clean(self, exclude_files=[], threshold=1024*1024):
         print('cleaning large files from the output directory...')
