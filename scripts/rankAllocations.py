@@ -16,7 +16,41 @@ assuming they do not overlap""")
     args = parser.parse_args()
     return args
 
+# read the list of allocations and create a dataframe, with an entry per allocation
+# containing the start of the allocation, its end, and the context (stack-trace) of the malloc call
+def read_allocations(allocs: Path) -> pd.DataFrame:
+    with allocs.open() as a:
+        # read each allocation in stages
+        # as each line can be either the start, the end or part of the trace
+        # and each need a different rteatment
+        stage = 0
+        start_list = []
+        end_list = []
+        ctx_list = []
+        allocations_dict = {}
+        for line in a.readlines():
+            line = line.strip()
+            if line == '':
+                stage = 0
+                ctx_list.append("")
+                continue
+            if stage == 0:
+                start_list.append(int(line, base=16))
+                stage = 1
+            elif stage == 1:
+                end_list.append(int(line, base=16))
+                stage = 2
+            else:
+                if ctx_list[-1] != "":
+                    ctx_list[-1] += ":"
+
+                ctx_list[-1] += ":" if ctx_list[-1] != "" else ""
+                # remove the virtual memory address from the backtrace
+                ctx_list[-1] += line[0:line.rindex('[')]
+
+        return pd.DataFrame({"start": start_list, "end": end_list, "context": ctx_list})
+
 if __name__ == "__main__":
     args = getCommandLineArguments()
 
-    print(f"reading '{args.allocation_data}' and '{args.pebs_data}' and writing in '{args.output_file}'")
+    print(read_allocations(args.allocation_data))
