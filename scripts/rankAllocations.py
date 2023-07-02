@@ -43,9 +43,6 @@ def read_allocations(allocs: Path) -> pl.DataFrame:
                 end_list.append(int(line, base=16))
                 stage = 2
             else:
-                if ctx_list[-1] != "":
-                    ctx_list[-1] += ":"
-
                 ctx_list[-1] += ":" if ctx_list[-1] != "" else ""
                 # remove the virtual memory address from the backtrace
                 ctx_list[-1] += line[0:line.rindex('[')]
