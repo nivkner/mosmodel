@@ -49,8 +49,10 @@ def read_allocations(allocs: Path) -> pl.DataFrame:
 
         return pl.DataFrame({"start": start_list, "end": end_list, "context": ctx_list})
 
+# computes a data frame where each entry is the context and how many TLB misses happened,
+# on huge page regions overlapping it, in decending order
 def rank_allocations(allocs: Path, pebs: Path, base: Path) -> pl.DataFrame:
-    pebs_df = pl.read_csv(pebs)
+    pebs_df = pl.read_csv(pebs).lazy()
     # use only pebs on allocations made with brk
     brk_pebs_df = pebs_df.filter(pl.col("PAGE_TYPE") == "brk")
 
@@ -62,12 +64,19 @@ def rank_allocations(allocs: Path, pebs: Path, base: Path) -> pl.DataFrame:
     # add the base page number to the entries, so that the pages start from address 0
     pebs_normalized_df = brk_pebs_df.with_columns(pl.col("PAGE_NUMBER") + pool_base)
 
-    allocs_df = read_allocations(allocs)
+    allocs_df = read_allocations(allocs).lazy()
 
     # convert allocs to to using page numbers instead of addresses
     allocs_pages_df = allocs_df.with_columns(pl.col("start") // (1 << 21), pl.col("end") // (1 << 21))
 
+    # match a pebs entry with the allocation overlapping with its page
+    # by first creating a cross product of the two, filtering by
+    allocs_with_misses_df = allocs_pages_df.join(pebs_normalized_df, on=1).filter((pl.col("start") <= pl.col("PAGE_NUMBER")) & (pl.col("end") >= pl.col("PAGE_NUMBER")))
+    return allocs_with_misses_df.collect().groupby("context").agg(pl.col("NUM_ACCESSES").sum()).sort("NUM_ACCESSES", descending=True)
+
 if __name__ == "__main__":
     args = getCommandLineArguments()
 
-    rank_allocations(args.allocation_data, args.pebs_data, args.base_data)
+    ranked_allocations = rank_allocations(args.allocation_data, args.pebs_data, args.base_data)
+
+    ranked_allocations.write_csv(args.output_file)
