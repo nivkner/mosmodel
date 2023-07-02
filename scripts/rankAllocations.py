@@ -67,6 +67,9 @@ def rank_allocations(allocs: Path, pebs: Path, base: Path) -> pl.DataFrame:
 
     allocs_df = read_allocations(allocs)
 
+    # convert allocs to to using page numbers instead of addresses
+    allocs_pages_df = allocs_df.with_columns(pl.col("start") // (1 << 21), pl.col("end") // (1 << 21))
+
 if __name__ == "__main__":
     args = getCommandLineArguments()
 
