@@ -14,6 +14,8 @@ assuming they do not overlap""")
             help='the CSV generated from pebs using mosmodel, for the number of TLB misses per 2MB region')
     parser.add_argument('-b', '--base_data', type=Path, required=True,
             help='the path to the CSV containing the base virtual addresses used the memory allocations')
+    parser.add_argument('-B', '--budget', type=int,
+            help='the maximum number of huge pages that should be allocated')
     parser.add_argument('-o', '--output_file', type=Path, required=True, help='the path to the file where the output will be written')
     args = parser.parse_args()
     return args
@@ -82,5 +84,8 @@ if __name__ == "__main__":
     args = getCommandLineArguments()
 
     ranked_allocations = rank_allocations(args.allocation_data, args.pebs_data, args.base_data)
+
+    if args.budget is not None:
+        ranked_allocations = ranked_allocations.filter(pl.col("memory_usage").cumsum() <= args.budget)
 
     ranked_allocations.write_csv(args.output_file)
