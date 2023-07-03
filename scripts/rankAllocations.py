@@ -72,11 +72,11 @@ def rank_allocations(allocs: Path, pebs: Path, base: Path) -> pl.DataFrame:
     # match a pebs entry with the allocation overlapping with its page
     # by first creating a cross product of the two, filtering by whether the page is containing in the pages containing the allocation
     allocs_with_misses_df = allocs_pages_df.join(pebs_normalized_df, on=1).filter((pl.col("start") <= pl.col("PAGE_NUMBER")) & (pl.col("end") >= pl.col("PAGE_NUMBER")))
+    # find the allocation contexts that cause the most tlb misses for the least number of memory usage (so that we can choose the handlful that are most effective)
     return allocs_with_misses_df.collect() \
-                                .groupby(["start", "end", "context"]) \
-                                .agg(pl.col("NUM_ACCESSES").sum()) \
-                                .sort("NUM_ACCESSES", descending=True) \
-                                .unique("context", keep="first", maintain_order=True)
+                                .groupby("context") \
+                                .agg(pl.col("NUM_ACCESSES").sum(), memory_usage=(pl.col("end") - pl.col("start")).sum()) \
+                                .sort(pl.col("NUM_ACCESSES") / pl.col("memory_usage"), descending=True)
 
 if __name__ == "__main__":
     args = getCommandLineArguments()
