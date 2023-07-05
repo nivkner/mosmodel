@@ -30,7 +30,7 @@ def rank_allocations(allocs: Path, pebs: Path, base: Path) -> pl.DataFrame:
     base_df = pl.read_csv(base)
 
     # get the start of the brk memory pool of the last entry (which is the application) parse and find its corresponding huge page number
-    pool_base = base_df[-1].select(pl.col("brk-start").str.slice(2).str.parse_int(16) // (1 << 21))
+    pool_base = base_df[-1].select(pl.col("brk-start").apply(lambda x: int(x, base=16) // (1 << 21)))
 
     # add the base page number to the entries, so that the pages start from address 0
     pebs_normalized_df = brk_pebs_df.with_columns(pl.col("PAGE_NUMBER") + pool_base)
