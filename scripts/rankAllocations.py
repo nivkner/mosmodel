@@ -20,41 +20,10 @@ assuming they do not overlap""")
     args = parser.parse_args()
     return args
 
-# read the list of allocations and create a dataframe, with an entry per allocation
-# containing the start of the allocation, its end, and the context (stack-trace) of the malloc call
-def read_allocations(allocs: Path) -> pl.DataFrame:
-    with allocs.open() as a:
-        # read each allocation in stages
-        # as each line can be either the start, the end or part of the trace
-        # and each need a different rteatment
-        stage = 0
-        start_list = []
-        end_list = []
-        ctx_list = []
-        allocations_dict = {}
-        for line in a.readlines():
-            line = line.strip()
-            if line == '':
-                stage = 0
-                ctx_list.append("")
-                continue
-            if stage == 0:
-                start_list.append(int(line, base=16))
-                stage = 1
-            elif stage == 1:
-                end_list.append(int(line, base=16))
-                stage = 2
-            else:
-                ctx_list[-1] += ":" if ctx_list[-1] != "" else ""
-                # remove the virtual memory address from the backtrace
-                ctx_list[-1] += line[0:line.rindex('[')]
-
-        return pl.DataFrame({"start": start_list, "end": end_list, "context": ctx_list})
-
 # computes a data frame where each entry is the context and how many TLB misses happened,
 # on huge page regions overlapping it, in decending order
 def rank_allocations(allocs: Path, pebs: Path, base: Path) -> pl.DataFrame:
-    pebs_df = pl.read_csv(pebs).lazy()
+    pebs_df = pl.scan_csv(pebs)
     # use only pebs on allocations made with brk
     brk_pebs_df = pebs_df.filter(pl.col("PAGE_TYPE") == "brk")
 
@@ -66,7 +35,7 @@ def rank_allocations(allocs: Path, pebs: Path, base: Path) -> pl.DataFrame:
     # add the base page number to the entries, so that the pages start from address 0
     pebs_normalized_df = brk_pebs_df.with_columns(pl.col("PAGE_NUMBER") + pool_base)
 
-    allocs_df = read_allocations(allocs).lazy()
+    allocs_df = pl.scan_csv(allocs)
 
     # convert allocs to to using page numbers instead of addresses
     allocs_pages_df = allocs_df.with_columns(pl.col("start") // (1 << 21), pl.col("end") // (1 << 21))
