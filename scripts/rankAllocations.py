@@ -38,7 +38,7 @@ def rank_allocations(allocs: Path, pebs: Path, base: Path) -> pl.LazyFrame:
     allocs_df = pl.scan_csv(allocs)
 
     # convert allocs to to using page numbers instead of addresses
-    allocs_pages_df = allocs_df.with_columns(pl.col("start") // (1 << 21), pl.col("end") // (1 << 21))
+    allocs_pages_df = allocs_df.with_columns(pl.col("start") // (1 << 21), pl.col("end") // (1 << 21), pl.col("context").str.replace_all("\[[^\]]*\]", ""))
 
     # match a pebs entry with the allocation overlapping with its page
     # by first creating a cross product of the two, filtering by whether the page is containing in the pages containing the allocation
