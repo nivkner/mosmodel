@@ -22,7 +22,7 @@ assuming they do not overlap""")
 
 # computes a data frame where each entry is the context and how many TLB misses happened,
 # on huge page regions overlapping it, in decending order
-def rank_allocations(allocs: Path, pebs: Path, base: Path) -> pl.DataFrame:
+def rank_allocations(allocs: Path, pebs: Path, base: Path) -> pl.LazyFrame:
     pebs_df = pl.scan_csv(pebs)
     # use only pebs on allocations made with brk
     brk_pebs_df = pebs_df.filter(pl.col("PAGE_TYPE") == "brk")
@@ -44,7 +44,7 @@ def rank_allocations(allocs: Path, pebs: Path, base: Path) -> pl.DataFrame:
     # by first creating a cross product of the two, filtering by whether the page is containing in the pages containing the allocation
     allocs_with_misses_df = allocs_pages_df.join(pebs_normalized_df, how="cross").filter((pl.col("start") <= pl.col("PAGE_NUMBER")) & (pl.col("PAGE_NUMBER") <= pl.col("end")))
     # find the allocation contexts that cause the most tlb misses for the least number of memory usage (so that we can choose the handlful that are most effective)
-    return allocs_with_misses_df.collect() \
+    return allocs_with_misses_df \
                                 .groupby("context") \
                                 .agg(pl.col("NUM_ACCESSES").sum(), memory_usage=(pl.col("end") - pl.col("start")).sum()) \
                                 .sort(pl.col("NUM_ACCESSES") / pl.col("memory_usage"), descending=True)
@@ -57,4 +57,4 @@ if __name__ == "__main__":
     if args.budget is not None:
         ranked_allocations = ranked_allocations.filter(pl.col("memory_usage").cumsum() <= args.budget)
 
-    ranked_allocations.write_csv(args.output_file)
+    ranked_allocations.collect().write_csv(args.output_file)
