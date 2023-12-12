@@ -34,6 +34,7 @@ MLOG_CAPACITY={args.limit}
 MLOG_CONTEXT={args.choices}
 MLOG_RSS={args.rss}
 LD_PRELOAD={custom_allocator}
+USE_THP={int(args.thp)}
 """
 
 shutil.copytree(args.base, args.output)

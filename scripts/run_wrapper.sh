@@ -7,4 +7,12 @@ if [[ "$PWD" != *"/experiments/memory_footprint/"* ]]; then
 	export $(< env.sh)
 fi
 
+if [[ "${USE_THP:-0}" == "1" ]]; then
+	echo "always" | sudo tee /sys/kernel/mm/transparent_hugepage/enabled
+fi
+
 source real_run.sh
+
+if [[ "${USE_THP:-0}" == "1" ]]; then
+	echo "never" | sudo tee /sys/kernel/mm/transparent_hugepage/enabled
+fi
