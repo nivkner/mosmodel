@@ -12,6 +12,7 @@ parser = argparse.ArgumentParser(description='generate a benchmark for mosmodel 
 parser.add_argument('-b', '--base', type=Path, required=True, help="the path to the mosmodel benchmark on the generated benchmark will be based")
 parser.add_argument('-o', '--output', type=Path, required=True, help="the path where the generated benchmark will be created")
 parser.add_argument('-a', '--allocator', type=Path, help="the path to the custom allocator used to backing allocations with huge pages")
+parser.add_argument('-d', '--description', type=str, help="a string describing the benchmark, for posterity")
 parser.add_argument('-t', '--thp', action='store_true', help="flag to run the command with THP enabled")
 parser.add_argument('-l', '--limit', type=int, default=0, help="maximum number of bytes that can be backed by huge pages")
 parser.add_argument('-c', '--choices', type=str, default="", help="a comma delimited list of hex numbers representing the allocations to be backed by huge pages")
@@ -44,3 +45,7 @@ args.output.joinpath("env.sh").write_text(env)
 
 if args.allocator is not None:
     shutil.copy(args.allocator, args.output)
+
+if args.description is not None:
+    assert not args.output.joinpath("description.txt").exists()
+    args.output.joinpath("description.txt").write_text(args.description)
