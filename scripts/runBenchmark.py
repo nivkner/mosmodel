@@ -30,9 +30,10 @@ class BenchmarkRun:
     def pre_run(self):
         print('warming up before running...')
         os.chdir(self._output_dir)
+        pre_run_script = './pre_run.sh' if os.path.exists('./pre_run.sh') else './prerun.sh'
         # the pre_run script will read input files to force them to reside
         # in the page-cache before run() is invoked.
-        subprocess.check_call('./pre_run.sh', stdout=self._log_file, stderr=self._log_file)
+        subprocess.check_call(pre_run_script, stdout=self._log_file, stderr=self._log_file)
 
     def run(self, num_threads, submit_command):
         print('running the benchmark ' + self._benchmark_dir + '...')
@@ -55,7 +56,8 @@ class BenchmarkRun:
     def post_run(self):
         print('validating the run outputs...')
         os.chdir(self._output_dir)
-        subprocess.check_call('./post_run.sh', stdout=self._log_file, stderr=self._log_file)
+        post_run_script = './post_run.sh' if os.path.exists('./post_run.sh') else './postrun.sh'
+        subprocess.check_call(post_run_script, stdout=self._log_file, stderr=self._log_file)
 
     def clean(self, exclude_files=[], threshold=1024*1024):
         print('cleaning large files from the output directory...')
