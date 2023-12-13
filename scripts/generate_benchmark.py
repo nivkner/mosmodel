@@ -17,7 +17,7 @@ parser.add_argument('-t', '--thp', action='store_true', help="flag to run the co
 parser.add_argument('-l', '--limit', type=int, default=0, help="maximum number of bytes that can be backed by huge pages")
 parser.add_argument('-c', '--choices', type=str, default="", help="a comma delimited list of hex numbers representing the allocations to be backed by huge pages")
 parser.add_argument('-r', '--rss', type=str, default="", help="a comma delimited list of the number of bytes used each choice in order")
-parser.add_argument('-e', '--env_vars', type=str, nargs='*', default=[], metavar="VAR=VALUE", help="a list of env vars to be passed to the allocator")
+parser.add_argument('-e', '--env_vars', type=str, nargs='+', default=[], metavar="VAR=VALUE", help="a list of env vars to be passed to the allocator")
 args = parser.parse_args()
 
 custom_allocator = f"./{args.allocator.name}" if args.allocator is not None else ""
