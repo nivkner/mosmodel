@@ -17,22 +17,15 @@ parser.add_argument('-t', '--thp', action='store_true', help="flag to run the co
 parser.add_argument('-l', '--limit', type=int, default=0, help="maximum number of bytes that can be backed by huge pages")
 parser.add_argument('-c', '--choices', type=str, default="", help="a comma delimited list of hex numbers representing the allocations to be backed by huge pages")
 parser.add_argument('-r', '--rss', type=str, default="", help="a comma delimited list of the number of bytes used each choice in order")
-parser.add_argument('-e', '--env', action='store_true', help="take the information from the environment instead of flags")
+parser.add_argument('-e', '--env_vars', type=str, nargs='*', default=[], metavar="VAR=VALUE", help="a list of env vars to be passed to the allocator")
 args = parser.parse_args()
-
-if args.env:
-    args.limit = os.environ["MLOG_CAPACITY"]
-    args.choices = os.environ["MLOG_CONTEXT"]
-    args.rss = os.environ["MLOG_RSS"]
 
 custom_allocator = f"./{args.allocator.name}" if args.allocator is not None else ""
 
-env = f"""
-MALLOC_LOG=0
-MLOG_MODE=4
-MLOG_CAPACITY={args.limit}
-MLOG_CONTEXT={args.choices}
-MLOG_RSS={args.rss}
+env_str = "\n".join(args.env_vars)
+
+env_full = f"""
+{env_str}
 LD_PRELOAD={custom_allocator}
 USE_THP={int(args.thp)}
 """
@@ -42,7 +35,7 @@ shutil.move(args.output.joinpath("run.sh"), args.output.joinpath("real_run.sh"))
 shutil.copy(scripts_dir.joinpath("run_wrapper.sh"), args.output.joinpath("run.sh"))
 
 assert not args.output.joinpath("env.sh").exists()
-args.output.joinpath("env.sh").write_text(env)
+args.output.joinpath("env.sh").write_text(env_full)
 
 if args.allocator is not None:
     shutil.copy(args.allocator, args.output)
