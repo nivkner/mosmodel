@@ -14,9 +14,6 @@ parser.add_argument('-o', '--output', type=Path, required=True, help="the path w
 parser.add_argument('-a', '--allocator', type=Path, help="the path to the custom allocator used to backing allocations with huge pages")
 parser.add_argument('-d', '--description', type=str, help="a string describing the benchmark, for posterity")
 parser.add_argument('-t', '--thp', action='store_true', help="flag to run the command with THP enabled")
-parser.add_argument('-l', '--limit', type=int, default=0, help="maximum number of bytes that can be backed by huge pages")
-parser.add_argument('-c', '--choices', type=str, default="", help="a comma delimited list of hex numbers representing the allocations to be backed by huge pages")
-parser.add_argument('-r', '--rss', type=str, default="", help="a comma delimited list of the number of bytes used each choice in order")
 parser.add_argument('-e', '--env_vars', type=str, nargs='+', default=[], metavar="VAR=VALUE", help="a list of env vars to be passed to the allocator")
 args = parser.parse_args()
 
