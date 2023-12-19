@@ -7,6 +7,14 @@ fi
 
 command="$@"
 
+MEASURE_HUGE_PID=0
+
+function cleanup {
+        if [[ "${MEASURE_HUGE_PID:-0}" != "0" ]]; then
+                kill -s SIGINT $MEASURE_HUGE_PID
+        fi
+}
+
 general_events="ref-cycles,cpu-cycles,instructions,"
 
 # We no longer measure the cache events because we want to reduce sampling and improve the measuring accuracy.
@@ -39,5 +47,8 @@ time_command="time --format=$time_format --output=time.out"
 submit_command="$perf_command $time_command"
 echo "Running the following command:"
 echo "$submit_command $command"
-$submit_command $command
 
+trap cleanup EXIT
+$(dirname $BASH_SOURCE)/measure_huge_usage.py &
+MEASURE_HUGE_PID=$!
+$submit_command $command
