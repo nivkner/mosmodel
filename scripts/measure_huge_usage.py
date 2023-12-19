@@ -20,12 +20,12 @@ def sample_huge_mem():
             parts = line.split()
             if parts[0] == "AnonHugePages:":
                 assert(parts[2] == "kB") # to catch if the units can change
-                info['collapsed_huge'] = int(parts[1]) >> 11 # save as huge pages (assume 2MB only)
+                info['collapsed_hugepages'] = int(parts[1]) >> 11 # save as huge pages (assume 2MB only)
             elif parts[0] == "HugePages_Total:":
-                info['reserved_huge'] = info.setdefault('reserved_huge', 0) + int(parts[1])
+                info['reserved_hugepages'] = info.setdefault('reserved_hugepages', 0) + int(parts[1])
             elif parts[0] == "HugePages_Free:":
-                info['reserved_huge'] = info.setdefault('reserved_huge', 0) - int(parts[1])
-    info['total_huge'] = info['collapsed_huge'] + info['reserved_huge']
+                info['reserved_hugepages'] = info.setdefault('reserved_hugepages', 0) - int(parts[1])
+    info['total_hugepages'] = info['collapsed_hugepages'] + info['reserved_hugepages']
     return info
 
 def measure():
@@ -40,7 +40,7 @@ def measure():
 
     print(f'Measured maximal values: {max_huge_mem}', file=sys.stderr)
     max_huge_mem_diff = {key: value - init_huge_mem[key] for (key, value) in max_huge_mem.items()}
-    output = Path("./max_huge_mem.out")
+    output = Path("./meminfo.out")
     output.write_text("".join(f"{key},{value}\n" for (key, value) in max_huge_mem_diff.items()))
 
 if __name__ == "__main__":
