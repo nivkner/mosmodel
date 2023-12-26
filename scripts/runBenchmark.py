@@ -28,6 +28,8 @@ class BenchmarkRun:
             self._log_file.close()
 
     def pre_run(self):
+        print('dropping caches...')
+        subprocess.run("echo 1 | sudo tee /proc/sys/vm/drop_caches", shell=True, stdout=self._log_file, stderr=self._log_file, check=True)
         print('warming up before running...')
         os.chdir(self._output_dir)
         pre_run_script = './pre_run.sh' if os.path.exists('./pre_run.sh') else './prerun.sh'
