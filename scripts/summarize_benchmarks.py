@@ -29,6 +29,6 @@ for benchmark in args.input.iterdir():
 
 summary_df = pl.concat(benchmark_dfs)
 
-args.output.mkdir(parents=True)
+args.output.mkdir(parents=True, exist_ok=True)
 
 summary_df.collect(streaming=True).write_csv(args.output.joinpath(args.input.name + "_summary.csv"))
