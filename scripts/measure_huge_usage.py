@@ -4,6 +4,7 @@ import signal
 import time
 import sys
 from pathlib import Path
+import polars as pl
 
 meminfo = Path("/proc/meminfo")
 sampling = True
@@ -30,11 +31,13 @@ def sample_huge_mem():
 
 def measure():
     init_huge_mem = sample_huge_mem()
+    samples = [init_huge_mem]
     print(f'Measured initial value: {init_huge_mem}', file=sys.stderr)
     max_huge_mem = init_huge_mem
     global sampling
     while sampling:
         new_huge_mem = sample_huge_mem()
+        samples.append(new_huge_mem)
         max_huge_mem = {key: max(value, new_huge_mem[key]) for (key, value) in max_huge_mem.items()}
         time.sleep(1)
 
@@ -42,6 +45,8 @@ def measure():
     max_huge_mem_diff = {key: value - init_huge_mem[key] for (key, value) in max_huge_mem.items()}
     output = Path("./meminfo.out")
     output.write_text("".join(f"{key},{value}\n" for (key, value) in max_huge_mem_diff.items()))
+    df = pl.DataFrame(samples)
+    df.write_csv("./meminfo_full.csv")
 
 if __name__ == "__main__":
     signal.signal(signal.SIGINT, handler)
