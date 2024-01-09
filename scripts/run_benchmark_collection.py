@@ -14,6 +14,7 @@ parser = argparse.ArgumentParser(description='run a collection of benchmarks and
 parser.add_argument('benchmarks', metavar='BENCHMARK', type=Path, nargs='+', help='a benchmark in the collection')
 parser.add_argument('-o', '--output', type=Path, required=True, help="the path where the output of the benchmarks will be stored")
 parser.add_argument('-s', '--summary', type=Path, help="the path where the summary of the benchmarks will be stored")
+parser.add_argument('-n', '--norepeat', action='store_true', help="flag to indiciate only one iteration should be done")
 args = parser.parse_args()
 
 run_timestamp = datetime.datetime.now()
@@ -21,9 +22,10 @@ run_timestamp = datetime.datetime.now()
 run_dir = args.output.joinpath(f"run_" + run_timestamp.strftime("%S-%M-%H_%d-%m-%Y"))
 
 for benchmark in args.benchmarks:
-    subprocess.run(["make", f"BENCHMARK_PATH={benchmark}", "experiments/single_page_size/layout2mb"], check=True)
-    shutil.copytree("experiments/single_page_size/layout2mb", run_dir.joinpath(benchmark.name))
-    subprocess.run(["make", "clean"], check=True)
+    subprocess.run(["make", f"BENCHMARK_PATH={benchmark}", f"experiments/single_page_size/layout2mb{'/repeat1' if args.norepeat else ''}"], check=True)
+    shutil.move("experiments/single_page_size/layout2mb", run_dir.joinpath(benchmark.name))
+
+subprocess.run(["make", "clean"], check=True)
 
 if args.summary is not None:
     subprocess.run([scripts_dir.joinpath("summarize_benchmarks.py"), "-i", run_dir, "-o", args.summary], check=True)
