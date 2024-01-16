@@ -6,6 +6,7 @@ import shutil
 import os
 import subprocess
 import datetime
+from summarize_benchmarks import summarize_benchmarks
 
 scripts_dir = Path(__file__).parent
 
@@ -29,6 +30,6 @@ for benchmark in args.benchmarks:
 subprocess.run(["make", "clean"], check=True)
 
 if args.summary is not None:
-    subprocess.run([scripts_dir.joinpath("summarize_benchmarks.py"), "-i", run_dir, "-o", args.summary], check=True)
     summary_file = args.summary.joinpath(run_dir.name + "_summary.csv")
+    summarize_benchmarks(run_dir, summary_file)
     print(f"created summary at {summary_file}")

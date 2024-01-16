@@ -31,8 +31,10 @@ def summarize_benchmark(benchmark_dir):
 
     return benchmark_df.group_by("Measure").agg(pl.col("Value").mean().alias("Mean"), pl.col("Value").std().alias("StdDev"), pl.lit(benchmark_dir.name).alias("Benchmark"))
 
-def summarize_benchmarks(outputs_dir):
-    return pl.concat([summarize_benchmark(benchmark_dir) for benchmark_dir in outputs_dir.iterdir()])
+def summarize_benchmarks(outputs_dir, summary_file):
+    df = pl.concat([summarize_benchmark(benchmark_dir) for benchmark_dir in outputs_dir.iterdir()])
+    summary_file.parent.mkdir(parents=True, exist_ok=True)
+    summary_df.collect(streaming=True).write_csv(summary_file)
 
 
 if __name__ == "__main__":
@@ -42,8 +44,4 @@ if __name__ == "__main__":
     parser.add_argument('-o', '--output', type=Path, required=True, help="the path where the summary will be stored")
     args = parser.parse_args()
 
-    summary_df = summarize_benchmarks(args.input)
-
-    args.output.mkdir(parents=True, exist_ok=True)
-
-    summary_df.collect(streaming=True).write_csv(args.output.joinpath(args.input.name + "_summary.csv"))
+    summarize_benchmarks(args.input, args.output.joinpath(args.input.name + "_summary.csv"))
