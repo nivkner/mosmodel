@@ -32,7 +32,7 @@ def summarize_benchmark(benchmark_dir):
     return benchmark_df.group_by("Measure").agg(pl.col("Value").mean().alias("Mean"), pl.col("Value").std().alias("StdDev"), pl.lit(benchmark_dir.name).alias("Benchmark"))
 
 def summarize_benchmarks(outputs_dir, summary_file):
-    df = pl.concat([summarize_benchmark(benchmark_dir) for benchmark_dir in outputs_dir.iterdir()])
+    summary_df = pl.concat([summarize_benchmark(benchmark_dir) for benchmark_dir in outputs_dir.iterdir()])
     summary_file.parent.mkdir(parents=True, exist_ok=True)
     summary_df.collect(streaming=True).write_csv(summary_file)
 
