@@ -27,7 +27,7 @@ prefix_perf_command="perf stat --field-separator=, --output=perf.out"
 #dtlb_events=${dtlb_events%?} # remove the trailing , charachter
 #dtlb_events=dtlb_load_misses.miss_causes_a_walk,dtlb_load_misses.walk_duration,dtlb_store_misses.miss_causes_a_walk,dtlb_store_misses.walk_duration
 
-dtlb_events=dtlb_load_misses.miss_causes_a_walk:kP,dtlb_load_misses.walk_duration:kP,dtlb_store_misses.miss_causes_a_walk:kP,dtlb_store_misses.walk_duration:kP,dtlb_load_misses.miss_causes_a_walk:uP,dtlb_load_misses.walk_duration:uP,dtlb_store_misses.miss_causes_a_walk:uP,dtlb_store_misses.walk_duration:uP
+dtlb_events=dtlb_load_misses.miss_causes_a_walk:kP,dtlb_load_misses.walk_active:kP,dtlb_store_misses.miss_causes_a_walk:kP,dtlb_store_misses.walk_active:kP,dtlb_load_misses.miss_causes_a_walk:uP,dtlb_load_misses.walk_active:uP,dtlb_store_misses.miss_causes_a_walk:uP,dtlb_store_misses.walk_active:uP
 
 # We also measure energy if the system allows it.
 energy_events=`perf list | \grep -o "\w*\/energy.*\/" | sort -u | tr '\n' ',i'`
