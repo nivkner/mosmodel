@@ -22,7 +22,8 @@ run_timestamp = datetime.datetime.now()
 run_dir = args.output.joinpath(f"run_" + run_timestamp.strftime("%S-%M-%H_%d-%m-%Y"))
 
 for benchmark in args.benchmarks:
-    subprocess.run(["make", f"BENCHMARK_PATH={benchmark}", f"experiments/single_page_size/layout2mb{'/repeat1' if args.norepeat else ''}"], check=True)
+    repeats = [f"experiments/single_page_size/layout2mb/repeat{n}" for n in ([1] if args.norepeat else range(1, 4))]
+    subprocess.run(["make", f"BENCHMARK_PATH={benchmark}"] + repeats, check=True)
     shutil.move("experiments/single_page_size/layout2mb", run_dir.joinpath(benchmark.name))
 
 subprocess.run(["make", "clean"], check=True)
