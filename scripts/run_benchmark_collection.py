@@ -14,7 +14,7 @@ parser = argparse.ArgumentParser(description='run a collection of benchmarks and
 parser.add_argument('benchmarks', metavar='BENCHMARK', type=Path, nargs='+', help='a benchmark in the collection')
 parser.add_argument('-o', '--output', type=Path, required=True, help="the path where the output of the benchmarks will be stored")
 parser.add_argument('-s', '--summary', type=Path, help="the path where the summary of the benchmarks will be stored")
-parser.add_argument('-n', '--norepeat', action='store_true', help="flag to indiciate only one iteration should be done")
+parser.add_argument('-i', '--iterations', type=int, default=3, help="the number of iterations done per benchmark")
 args = parser.parse_args()
 
 run_timestamp = datetime.datetime.now()
@@ -22,7 +22,7 @@ run_timestamp = datetime.datetime.now()
 run_dir = args.output.joinpath(f"run_" + run_timestamp.strftime("%S-%M-%H_%d-%m-%Y"))
 
 for benchmark in args.benchmarks:
-    repeats = [f"experiments/single_page_size/layout2mb/repeat{n}" for n in ([1] if args.norepeat else range(1, 4))]
+    repeats = [f"experiments/single_page_size/layout2mb/repeat{n}" for n in range(1, args.iterations + 1)]
     subprocess.run(["make", f"BENCHMARK_PATH={benchmark}"] + repeats, check=True)
     shutil.move("experiments/single_page_size/layout2mb", run_dir.joinpath(benchmark.name))
 
