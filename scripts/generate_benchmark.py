@@ -28,7 +28,7 @@ LD_PRELOAD={custom_allocator}
 USE_THP={int(args.thp)}
 """
 
-shutil.copytree(args.base, args.output)
+shutil.copytree(args.base, args.output, symlinks=True)
 shutil.move(args.output.joinpath("run.sh"), args.output.joinpath("real_run.sh"))
 shutil.copy(scripts_dir.joinpath("run_wrapper.sh"), args.output.joinpath("run.sh"))
 
