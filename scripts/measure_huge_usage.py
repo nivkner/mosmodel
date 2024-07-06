@@ -42,9 +42,9 @@ def measure():
         time.sleep(1)
 
     print(f'Measured maximal values: {max_huge_mem}', file=sys.stderr)
-    max_huge_mem_diff = {key: value - init_huge_mem[key] for (key, value) in max_huge_mem.items()}
+    #max_huge_mem_diff = {key: value - init_huge_mem[key] for (key, value) in max_huge_mem.items()}
     output = Path("./meminfo.out")
-    output.write_text("".join(f"{key},{value}\n" for (key, value) in max_huge_mem_diff.items()))
+    output.write_text("".join(f"{key},{value}\n" for (key, value) in max_huge_mem.items()))
     df = pl.DataFrame(samples)
     df.write_csv("./meminfo_full.csv")
 
