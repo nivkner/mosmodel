@@ -29,19 +29,9 @@ prefix_perf_command="perf stat --field-separator=, --output=perf.out"
 
 dtlb_events=dtlb_load_misses.miss_causes_a_walk:kP,dtlb_load_misses.walk_active:kP,dtlb_store_misses.miss_causes_a_walk:kP,dtlb_store_misses.walk_active:kP,dtlb_load_misses.miss_causes_a_walk:uP,dtlb_load_misses.walk_active:uP,dtlb_store_misses.miss_causes_a_walk:uP,dtlb_store_misses.walk_active:uP
 
-# We also measure energy if the system allows it.
-energy_events=`perf list | \grep -o "\w*\/energy.*\/" | sort -u | tr '\n' ',i'`
-energy_events=${energy_events%?} # remove the trailing , charachter
+dtlb_events=dtlb_load_misses.miss_causes_a_walk:P,dtlb_store_misses.miss_causes_a_walk:P
 
 perf_command="$prefix_perf_command --event $general_events$dtlb_events -- "
-
-if [[ -z "$energy_events" ]]; then
-    echo "this CPU does not support energy events"
-else
-    echo "this CPU supports energy events"
-    # dont measure energy events
-    #perf_command+="$prefix_perf_command --event $energy_events --cpu=0 -- "
-fi
 
 time_format="seconds-elapsed,%e\nuser-time-seconds,%U\n"
 time_format+="kernel-time-seconds,%S\nmax-resident-memory-kb,%M"
