@@ -4,7 +4,7 @@ import signal
 import time
 import sys
 from pathlib import Path
-import polars as pl
+import json
 
 meminfo = Path("/proc/meminfo")
 sampling = True
@@ -45,8 +45,8 @@ def measure():
     #max_huge_mem_diff = {key: value - init_huge_mem[key] for (key, value) in max_huge_mem.items()}
     output = Path("./meminfo.out")
     output.write_text("".join(f"{key},{value}\n" for (key, value) in max_huge_mem.items()))
-    df = pl.DataFrame(samples)
-    df.write_csv("./meminfo_full.csv")
+    full_output = Path("./meminfo_full.ndjson")
+    full_output.write_text("".join(json.dumps(sample)+"\n" for sample in samples))
 
 if __name__ == "__main__":
     signal.signal(signal.SIGINT, handler)
