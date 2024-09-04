@@ -16,20 +16,29 @@ parser.add_argument('benchmarks', metavar='BENCHMARK', type=Path, nargs='+', hel
 parser.add_argument('-o', '--output', type=Path, required=True, help="the path where the output of the benchmarks will be stored")
 parser.add_argument('-s', '--summary', type=Path, help="the path where the summary of the benchmarks will be stored")
 parser.add_argument('-i', '--iterations', type=int, default=3, help="the number of iterations done per benchmark")
+parser.add_argument('-p', '--progressive', type=str, metavar="SIG", help="add results to an existing analysis with the matching sig if one exists")
 args = parser.parse_args()
 
-run_timestamp = datetime.datetime.now()
+signature = args.progressive if args.progressive is not None else datetime.datetime.now().strftime("%S-%M-%H_%d-%m-%Y")
 
-run_dir = args.output.joinpath(f"run_" + run_timestamp.strftime("%S-%M-%H_%d-%m-%Y"))
+run_dir = args.output.joinpath(f"run_" + signature)
 
 for benchmark in args.benchmarks:
-    repeats = [f"experiments/single_page_size/layout2mb/repeat{n}" for n in range(1, args.iterations + 1)]
+    run_benchmark = run_dir.joinpath(benchmark.name)
+    top_prev_iter = 0
+    if run_benchmark.exists():
+        top_prev_iter = max((int(f.name.removeprefix("repeat")) for f in run_benchmark.glob("repeat*")), default=0)
+    run_benchmark.mkdir(parents=True, exist_ok=True)
+
+    repeats = [f"experiments/single_page_size/layout2mb/repeat{n}" for n in range(top_prev_iter+1, top_prev_iter + args.iterations + 1)]
     subprocess.run(["make", f"BENCHMARK_PATH={benchmark}"] + repeats, check=True)
-    shutil.move("experiments/single_page_size/layout2mb", run_dir.joinpath(benchmark.name))
+    for rep in Path("experiments/single_page_size/layout2mb").glob("repeat*"):
+        shutil.move(rep, run_benchmark.joinpath(rep.name))
+    shutil.rmtree("experiments/single_page_size/layout2mb")
 
 subprocess.run(["make", "clean"], check=True)
 
 if args.summary is not None:
     summary_file = args.summary.joinpath(run_dir.name + "_summary.csv")
     summarize_benchmarks(run_dir, summary_file)
-    print(f"created summary at {summary_file}")
+    print(f"summary is at {summary_file}")
