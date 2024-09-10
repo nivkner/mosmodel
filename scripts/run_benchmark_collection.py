@@ -30,10 +30,11 @@ for benchmark in args.benchmarks:
         top_prev_iter = max((int(f.name.removeprefix("repeat")) for f in run_benchmark.glob("repeat*")), default=0)
     run_benchmark.mkdir(parents=True, exist_ok=True)
 
-    repeats = [f"experiments/single_page_size/layout2mb/repeat{n}" for n in range(top_prev_iter+1, top_prev_iter + args.iterations + 1)]
-    subprocess.run(["make", f"BENCHMARK_PATH={benchmark}"] + repeats, check=True)
-    for rep in Path("experiments/single_page_size/layout2mb").glob("repeat*"):
-        shutil.move(rep, run_benchmark.joinpath(rep.name))
+    for n in range(top_prev_iter+1, top_prev_iter + args.iterations + 1):
+        tmp_output = "experiments/single_page_size/layout2mb/repeat1"
+        subprocess.run(["make", f"BENCHMARK_PATH={benchmark}", tmp_output], check=True)
+        shutil.move(tmp_output, run_benchmark.joinpath(f"repeat{n}"))
+
     shutil.rmtree("experiments/single_page_size/layout2mb")
 
 subprocess.run(["make", "clean"], check=True)
