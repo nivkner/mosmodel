@@ -39,8 +39,8 @@ $(MEASUREMENTS): $(EXPERIMENT_DIR)/layout%: $(LAYOUTS_FILE) | experiments-prereq
 		echo "Cannot find the layout configuration to run: $@"
 		exit -1
 	fi
-	$(RUN_BENCHMARK) --submit_command "$(MEASURE_GENERAL_METRICS) $(SET_CPU_MEMORY_AFFINITY) $(BOUND_MEMORY_NODE) \
-		$(RUN_MOSALLOC_TOOL) --library $(MOSALLOC_TOOL) $$ARGS_FOR_MOSALLOC $(EXTRA_ARGS_FOR_MOSALLOC)" -- \
+	$(RUN_BENCHMARK) --submit_command "$(RUN_MOSALLOC_TOOL) --library $(MOSALLOC_TOOL) $$ARGS_FOR_MOSALLOC $(EXTRA_ARGS_FOR_MOSALLOC) \
+		$(MEASURE_GENERAL_METRICS) $(SET_CPU_MEMORY_AFFINITY) $(BOUND_MEMORY_NODE)" -- \
 		$(BENCHMARK_PATH) $(dir $@)
 
 results: $(RESULT_DIR)
