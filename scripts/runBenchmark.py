@@ -29,7 +29,7 @@ class BenchmarkRun:
 
     def pre_run(self):
         print('dropping caches...')
-        subprocess.run(["sync"], stdout=self._log_file, stderr=self._log_file, check=True)
+        subprocess.run(["sync", "-f", "."], stdout=self._log_file, stderr=self._log_file, check=True)
         subprocess.run("echo 3 | sudo tee /proc/sys/vm/drop_caches", shell=True, stdout=self._log_file, stderr=self._log_file, check=True)
         print('compact memory...')
         subprocess.run("echo 1 | sudo tee /sys/devices/system/node/node1/compact", check=True, shell=True)
@@ -73,7 +73,7 @@ class BenchmarkRun:
                 if (not islink(file_path)) and (getsize(file_path) > threshold) and (name not in exclude_files):
                     os.remove(file_path)
         print('syncing to clean all pending I/O activity...')
-        os.sync()
+        subprocess.run(["sync", "-f", "."], stdout=self._log_file, stderr=self._log_file, check=True)
 
 import argparse
 def getCommandLineArguments():
