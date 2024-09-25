@@ -8,6 +8,7 @@ import subprocess
 import datetime
 from summarize_benchmarks import summarize_benchmarks
 
+removeprefix = lambda hey, needle: hey if needle not in hey else hey[len(needle):]
 scripts_dir = Path(__file__).parent
 
 parser = argparse.ArgumentParser(description='run a collection of benchmarks and copy the results')
@@ -27,7 +28,7 @@ for benchmark in args.benchmarks:
     run_benchmark = run_dir.joinpath(benchmark.name)
     top_prev_iter = 0
     if run_benchmark.exists():
-        top_prev_iter = max((int(f.name.removeprefix("repeat")) for f in run_benchmark.glob("repeat*")), default=0)
+        top_prev_iter = max((int(removeprefix(f.name, "repeat")) for f in run_benchmark.glob("repeat*")), default=0)
     run_benchmark.mkdir(parents=True, exist_ok=True)
 
     for n in range(top_prev_iter+1, top_prev_iter + args.iterations + 1):
