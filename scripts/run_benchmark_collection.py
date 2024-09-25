@@ -4,6 +4,7 @@ import argparse
 from pathlib import Path
 import shutil
 import os
+import sys
 import subprocess
 import datetime
 from summarize_benchmarks import summarize_benchmarks
@@ -43,4 +44,4 @@ subprocess.run(["make", "clean"], check=True)
 if args.summary is not None:
     summary_file = args.summary.joinpath(run_dir.name + "_summary.csv")
     summarize_benchmarks(run_dir, summary_file)
-    print(f"summary is at {summary_file}")
+    print(f"summary is at {summary_file}", file=sys.stderr)
