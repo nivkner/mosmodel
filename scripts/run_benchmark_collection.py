@@ -39,8 +39,6 @@ for benchmark in args.benchmarks:
 
     shutil.rmtree("experiments/single_page_size/layout2mb")
 
-subprocess.run(["make", "clean"], check=True)
-
 if args.summary is not None:
     summary_file = args.summary.joinpath(run_dir.name + "_summary.csv")
     summarize_benchmarks(run_dir, summary_file)
