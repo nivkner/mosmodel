@@ -22,7 +22,7 @@ def summarize_benchmark(benchmark_dir):
     df_types = []
     df_types.append(pl.scan_csv(benchmark_dir.joinpath("repeat*/time.out"), has_header=False, new_columns=["Measure", "Value"]))
     df_types.append(pl.scan_csv(benchmark_dir.joinpath("repeat*/perf.out"), has_header=False, skip_rows=2, new_columns=["Value", "Unit", "Measure"]).select("Measure", pl.col("Value").cast(pl.Float64)))
-    df_types.append(pl.scan_csv(benchmark_dir.joinpath("repeat*/meminfo.out"), has_header=False, new_columns=["Measure", "Value"], dtypes=[pl.Utf8, pl.Float64]))
+    df_types.append(pl.scan_csv(benchmark_dir.joinpath("repeat*/meminfo.out"), has_header=False, new_columns=["Measure", "Value"], schema_overrides=[pl.Utf8, pl.Float64]))
 
     for memtier_json in benchmark_dir.glob("repeat*/bench.json"):
         df_types.append(get_memtier_df_from_json(memtier_json))
